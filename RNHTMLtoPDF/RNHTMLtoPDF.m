@@ -12,11 +12,11 @@
 #define PDFSize CGSizeMake(612,792)
 
 @implementation UIPrintPageRenderer (PDF)
-- (NSData*) printToPDF
+- (NSData*) printToPDF:(NSDictionary *)auxDictionary
 {
     NSMutableData *pdfData = [NSMutableData data];
-    UIGraphicsBeginPDFContextToData( pdfData, self.paperRect, nil );
-
+    UIGraphicsBeginPDFContextToData( pdfData, self.paperRect, auxDictionary);
+    
     [self prepareForDrawingPages: NSMakeRange(0, self.numberOfPages)];
 
     CGRect bounds = UIGraphicsGetPDFContextBounds();
@@ -39,6 +39,10 @@
     NSString *_html;
     NSString *_fileName;
     NSString *_filePath;
+    NSString *_ownerPassword;
+    NSString *_userPassword;
+    NSNumber *_encryptionKeyLength;
+    NSMutableDictionary *_auxDictionary;
     CGSize _PDFSize;
     UIWebView *_webView;
     float _padding;
@@ -96,6 +100,23 @@ RCT_EXPORT_METHOD(convert:(NSDictionary *)options
     } else {
         _padding = 10.0f;
     }
+    
+    _auxDictionary = [[NSMutableDictionary alloc] init];
+    
+    if (options[@"ownerPassword"]) {
+        _ownerPassword = [RCTConvert NSString:options[@"ownerPassword"]];
+        [_auxDictionary setObject:_ownerPassword forKey:(NSString *)kCGPDFContextOwnerPassword];
+    }
+    
+    if (options[@"userPassword"]) {
+        _userPassword = [RCTConvert NSString:options[@"userPassword"]];
+        [_auxDictionary setObject:_userPassword forKey:(NSString *)kCGPDFContextUserPassword];
+    }
+    
+    if (options[@"encryptionKeyLength"]) {
+        _encryptionKeyLength = [RCTConvert NSNumber:options[@"encryptionKeyLength"]];
+        [_auxDictionary setObject:_encryptionKeyLength forKey:(NSString *)kCGPDFContextEncryptionKeyLength];
+    }
 
     NSString *path = [[NSBundle mainBundle] bundlePath];
     NSURL *baseURL = [NSURL fileURLWithPath:path];
@@ -123,7 +144,7 @@ RCT_EXPORT_METHOD(convert:(NSDictionary *)options
     [render setValue:[NSValue valueWithCGRect:paperRect] forKey:@"paperRect"];
     [render setValue:[NSValue valueWithCGRect:printableRect] forKey:@"printableRect"];
 
-    NSData *pdfData = [render printToPDF];
+    NSData *pdfData = [render printToPDF:_auxDictionary];
 
     if (pdfData) {
         [pdfData writeToFile:_filePath atomically:YES];

@@ -51,6 +51,21 @@ var Example = React.createClass({
                                             => content width of 1008
                                     Default: 10
                                   */
+      ownerPassword: 'pword1'     /* Optional: Sets an owner password on the generated PDF document (restricts
+                                            the ability to change document settings like printability, etc.)
+                                    Default: unused
+                                  */
+                                    
+      userPassword: 'pword2'      /* Optional: Sets a user password on the generated PDF document that must
+                                            be supplied in order to open the document. Also encrypts the PDF.
+                                    Default: unused
+                                  */
+      encryptionKeyLength: 128    /* Optional: If either ownerPassword or userPassword is set, this can also be
+                                            set to modify the encryption key length used to encrypt the PDF. By
+                                            default iOS will use a 40-bit key, but you can specify any key 
+                                            length between 40 and 128 as long as it is a multiple of 8.
+                                    Default: unused
+                                  */
     };
     
     RNHTMLtoPDF.convert(options).then((filePath) => {
